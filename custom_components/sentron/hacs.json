@@ -1,5 +1,7 @@
 {
   "name": "SENTRON",
   "content_in_root": false,
-  "domains": ["sentron"]
+  "domains": ["sentron"],
+  "homeassistant": "2024.1.0",
+  "iot_class": "local_polling"
 }

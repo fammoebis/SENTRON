@@ -3,13 +3,18 @@
     "step": {
       "user": {
         "title": "SENTRON Gerät hinzufügen",
-        "description": "Verbinde dein SENTRON Modbus Gerät",
+        "description": "Gib die Verbindungsdaten deines SENTRON PAC Geräts ein.",
         "data": {
-          "host": "IP Adresse",
-          "port": "Port",
-          "register": "Register"
+          "name": "Anzeigename (z.B. PAC2200)",
+          "host": "IP-Adresse",
+          "port": "Port (Standard 502)",
+          "area": "Bereich (z.B. Keller)"
         }
       }
+    },
+    "error": {
+      "cannot_connect": "Verbindung fehlgeschlagen",
+      "unknown": "Unerwarteter Fehler"
     }
   }
 }
