@@ -1,0 +1,15 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "SENTRON Gerät hinzufügen",
+        "description": "Verbinde dein SENTRON Modbus Gerät",
+        "data": {
+          "host": "IP Adresse",
+          "port": "Port",
+          "register": "Register"
+        }
+      }
+    }
+  }
+}

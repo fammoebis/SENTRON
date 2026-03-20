@@ -1,0 +1,7 @@
+{
+  "name": "SENTRON",
+  "content_in_root": false,
+  "domains": ["sentron"],
+  "country": "DE",
+  "render_readme": true
+}
