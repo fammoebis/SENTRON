@@ -1,6 +1,5 @@
 {
   "name": "SENTRON",
-  "content_type": "integration",
-  "domains": ["sentron"],
-  "homeassistant": "2024.1.0"
+  "content_in_root": false,
+  "domains": ["sentron"]
 }
