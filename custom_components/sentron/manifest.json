@@ -1,7 +1,7 @@
 {
   "domain": "sentron",
   "name": "SENTRON",
-  "version": "1.2.2",
+  "version": "1.0.9",
   "documentation": "https://github.com/fammoebis/SENTRON",
   "requirements": ["pymodbus>=3.11.2"],
   "config_flow": true,
