@@ -5,9 +5,13 @@ from pymodbus.client import AsyncModbusTcpClient
 from pymodbus.payload import BinaryPayloadDecoder
 from pymodbus.constants import Endian
 from .const import DOMAIN, CONF_AREA
+import logging
+
+_LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry, async_add_entities):
     config = entry.data
+    # Erstellung des asynchronen Clients
     client = AsyncModbusTcpClient(config[CONF_HOST], port=config[CONF_PORT])
     
     device_info = DeviceInfo(
@@ -36,22 +40,37 @@ class SentronPACSensor(SensorEntity):
         self._attr_state_class = state_class
         self._scale = scale
         self._attr_device_info = device_info
-        self._attr_unique_id = f"{device_info['identifiers'].copy().pop()[1]}_{address}"
+        self._attr_unique_id = f"sentron_{device_info['identifiers'].copy().pop()[1]}_{address}"
 
     async def async_update(self):
+        """Holt die aktuellen Daten vom SENTRON Gerät via Modbus."""
         try:
             if not self._client.connected:
                 await self._client.connect()
             
             count = 4 if self._data_type == "float64" else 2
-            # PAC nutzt Input-Register für Messdaten
+            # PAC-Geräte speichern Messwerte in Input-Registern (0x04)
             result = await self._client.read_input_registers(self._address, count, slave=1)
             
-            if not result.isError():
-                decoder = BinaryPayloadDecoder.fromRegisters(result.registers, byteorder=Endian.BIG, wordorder=Endian.BIG)
-                val = decoder.decode_64bit_float() if self._data_type == "float64" else decoder.decode_32bit_float()
-                self._attr_native_value = round(val * self._scale, 1)
-            else:
+            if result.isError():
+                _LOGGER.error("Modbus Fehler beim Lesen von Register %s: %s", self._address, result)
                 self._attr_native_value = None
-        except Exception:
+                return
+
+            # Dekodierung der Byte-Reihenfolge (Big Endian für PAC-Geräte)
+            decoder = BinaryPayloadDecoder.fromRegisters(
+                result.registers, 
+                byteorder=Endian.BIG, 
+                wordorder=Endian.BIG
+            )
+            
+            if self._data_type == "float64":
+                val = decoder.decode_64bit_float()
+            else:
+                val = decoder.decode_32bit_float()
+                
+            self._attr_native_value = round(val * self._scale, 1)
+            
+        except Exception as err:
+            _LOGGER.error("Verbindungsfehler zu SENTRON (%s): %s", self._address, err)
             self._attr_native_value = None
