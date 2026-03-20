@@ -1,14 +1,14 @@
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PORT, CONF_NAME
-# Stelle sicher, dass CONF_AREA hier importiert wird
-from .const import DOMAIN, CONF_AREA 
+
+# Absoluter Import zur Vermeidung von Circular Imports
+from custom_components.sentron.const import DOMAIN, CONF_AREA 
 
 class SentronConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     async def async_step_user(self, user_input=None):
-        errors = {}
         if user_input is not None:
             return self.async_create_entry(
                 title=user_input[CONF_NAME], 
@@ -21,7 +21,6 @@ class SentronConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 vol.Required(CONF_NAME, default="SENTRON"): str,
                 vol.Required(CONF_HOST): str,
                 vol.Optional(CONF_PORT, default=502): int,
-                vol.Optional(CONF_AREA): str, # Das Feld muss hier existieren
-            }),
-            errors=errors
+                vol.Optional(CONF_AREA): str,
+            })
         )
