@@ -1,18 +1,14 @@
 import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_PORT
-
-from .const import DOMAIN
-
-CONF_REGISTER = "register"
-
+# Importiere alles aus deiner const.py
+from .const import DOMAIN, CONF_REGISTER 
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     VERSION = 1
 
     async def async_step_user(self, user_input=None):
         errors = {}
-
         if user_input is not None:
             return self.async_create_entry(
                 title=f"SENTRON {user_input[CONF_HOST]}",
