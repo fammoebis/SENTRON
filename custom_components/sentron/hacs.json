@@ -1,6 +1,6 @@
 {
   "name": "SENTRON",
-  "content_in_root": false,
+  "content_type": "integration",
   "domains": ["sentron"],
   "country": "DE",
   "render_readme": true
