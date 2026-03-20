@@ -3,8 +3,6 @@
   "name": "SENTRON",
   "version": "1.0.0",
   "documentation": "https://github.com/fammoebis/SENTRON",
-  "issue_tracker": "https://github.com/fammoebis/SENTRON/issues",
-  "dependencies": [],
   "codeowners": ["@fammoebis"],
   "requirements": ["pymodbus==3.5.2"],
   "config_flow": true,
