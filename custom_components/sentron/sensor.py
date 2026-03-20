@@ -1,17 +1,25 @@
+import logging
 from homeassistant.components.sensor import SensorEntity, SensorDeviceClass, SensorStateClass
 from homeassistant.const import UnitOfEnergy, UnitOfPower, CONF_HOST, CONF_PORT, CONF_NAME
 from homeassistant.helpers.entity import DeviceInfo
-from pymodbus.client import AsyncModbusTcpClient
-from pymodbus.payload import BinaryPayloadDecoder
-from pymodbus.constants import Endian
-from .const import DOMAIN, CONF_AREA
-import logging
+
+# Hier lag der Fehler in Zeile 5 - Wir nutzen nun den vollen Pfad
+from custom_components.sentron.const import DOMAIN, CONF_AREA 
+
+# Pymodbus Importe absichern
+try:
+    from pymodbus.client import AsyncModbusTcpClient
+    from pymodbus.payload import BinaryPayloadDecoder
+    from pymodbus.constants import Endian
+except ImportError:
+    from pymodbus.client.asynchronous.tcp import AsyncModbusTcpClient
+    from pymodbus.payload import BinaryPayloadDecoder
+    from pymodbus.constants import Endian
 
 _LOGGER = logging.getLogger(__name__)
 
 async def async_setup_entry(hass, entry, async_add_entities):
     config = entry.data
-    # Erstellung des asynchronen Clients
     client = AsyncModbusTcpClient(config[CONF_HOST], port=config[CONF_PORT])
     
     device_info = DeviceInfo(
@@ -19,6 +27,7 @@ async def async_setup_entry(hass, entry, async_add_entities):
         name=config[CONF_NAME],
         manufacturer="Siemens",
         model="SENTRON PAC",
+        sw_version="1.3.0",
         suggested_area=config.get(CONF_AREA),
     )
     
@@ -43,34 +52,17 @@ class SentronPACSensor(SensorEntity):
         self._attr_unique_id = f"sentron_{device_info['identifiers'].copy().pop()[1]}_{address}"
 
     async def async_update(self):
-        """Holt die aktuellen Daten vom SENTRON Gerät via Modbus."""
         try:
             if not self._client.connected:
                 await self._client.connect()
             
             count = 4 if self._data_type == "float64" else 2
-            # PAC-Geräte speichern Messwerte in Input-Registern (0x04)
             result = await self._client.read_input_registers(self._address, count, slave=1)
             
-            if result.isError():
-                _LOGGER.error("Modbus Fehler beim Lesen von Register %s: %s", self._address, result)
-                self._attr_native_value = None
-                return
-
-            # Dekodierung der Byte-Reihenfolge (Big Endian für PAC-Geräte)
-            decoder = BinaryPayloadDecoder.fromRegisters(
-                result.registers, 
-                byteorder=Endian.BIG, 
-                wordorder=Endian.BIG
-            )
-            
-            if self._data_type == "float64":
-                val = decoder.decode_64bit_float()
-            else:
-                val = decoder.decode_32bit_float()
-                
-            self._attr_native_value = round(val * self._scale, 1)
-            
-        except Exception as err:
-            _LOGGER.error("Verbindungsfehler zu SENTRON (%s): %s", self._address, err)
+            if not result.isError():
+                decoder = BinaryPayloadDecoder.fromRegisters(result.registers, byteorder=Endian.BIG, wordorder=Endian.BIG)
+                val = decoder.decode_64bit_float() if self._data_type == "float64" else decoder.decode_32bit_float()
+                self._attr_native_value = round(val * self._scale, 1)
+        except Exception as e:
+            _LOGGER.debug("Update Fehler: %s", e)
             self._attr_native_value = None
